@@ -26,4 +26,9 @@ setup(
     extras_require={
         's3': ['boto'],
     },
+    entry_points={
+        'console_scripts': [
+            'dcao-include = compose_addons.includes:main'
+        ],
+    },
 )

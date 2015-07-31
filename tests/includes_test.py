@@ -192,6 +192,7 @@ def test_include_end_to_end(tmpdir, capsys):
         include:
             - ./api_a/docker-compose.yml
             - ./api_b/docker-compose.yml
+        namespace: core
         web:
             image: example/web:latest
             links: ['api_a.web', 'db', 'api_b.web']

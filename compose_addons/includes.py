@@ -1,5 +1,10 @@
-"""Include external projects, allowing services to link to a service
-defined in an external project.
+"""Include and merge docker-compose configurations into a single file.
+
+Given a docker-compose.yml file, fetch each configuration in the include
+section and merge it into a base docker-compose.yml. If any of the included
+files have include sections continue to fetch and merge each of them until
+there are no more files to include.
+
 """
 import argparse
 import logging
@@ -131,7 +136,6 @@ def fetch_include(cache, url):
 
     configs = fetch_includes(config, cache)
     # TODO: validate service config (no build, no host volumes, etc)
-    # TODO: do I need namespacing?
     return merge_configs(config, configs)
 
 
@@ -140,14 +144,13 @@ def include(base_config, fetch_config):
         return fetch_external_config(url, fetch_config)
 
     cache = ConfigCache(fetch)
-    # TODO: pop namespace for base?
+    # Remove the namespace key from the base config, if it exists
+    base_config.pop('namespace', None)
     return merge_configs(base_config, fetch_includes(base_config, cache))
 
 
 def get_args(args=None):
-    parser = argparse.ArgumentParser(
-        description="Include remote compose configuration."
-    )
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--version', action='version', version=version)
     parser.add_argument(
         'compose_file',
