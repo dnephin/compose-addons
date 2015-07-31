@@ -112,37 +112,6 @@ class ConfigCache(object):
         return dict(self.cache[url])
 
 
-# TODO:
-def namespace_volumes_from(service, service_names):
-    pass
-
-
-# TODO:
-def namespace_links(service, service_names):
-    pass
-
-
-# TODO:
-def namespace_net(service, service_names):
-    pass
-
-
-def namespace_service_names(compose_config, namespace):
-    service_names = set(compose_config)
-
-    def add_namespace(name, service_config):
-        namespace_links(service_config, service_names)
-        namespace_volumes_from(service_config, service_names)
-        namespace_net(service_config, service_names)
-
-        return '%s.%s' % (namespace, name), service_config
-
-    return dict(
-        add_namespace(service, conf)
-        for service, conf in compose_config.items()
-    )
-
-
 def merge_configs(base, configs):
     for config in configs:
         base.update(config)
@@ -163,7 +132,6 @@ def fetch_include(cache, url):
     configs = fetch_includes(config, cache)
     # TODO: validate service config (no build, no host volumes, etc)
     # TODO: do I need namespacing?
-    # config = namespace_service_names(config, namespace)
     return merge_configs(config, configs)
 
 
