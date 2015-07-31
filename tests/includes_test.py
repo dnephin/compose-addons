@@ -2,6 +2,7 @@ import boto.exception
 import boto.s3.connection
 import mock
 import pytest
+import yaml
 
 from compose_addons import includes
 from compose_addons.includes import (
@@ -127,10 +128,11 @@ class TestFetchExternalConfig(object):
 
 
 def test_config_cache():
-    url, fetch_func = mock.Mock(), mock.Mock()
+    url, fetch_func = mock.Mock(), mock.Mock(return_value=dict(a=1))
     cache = ConfigCache(fetch_func)
     assert cache.get(url) == fetch_func.return_value
     assert cache.get(url) == fetch_func.return_value
+    assert cache.get(url) is not fetch_func.return_value
     fetch_func.assert_called_once_with(url)
 
 
@@ -156,8 +158,7 @@ def test_fetch_include_missing_namespace():
 
 def test_fetch_include():
     url = 'http://example.com/project.yml'
-    cache = mock.create_autospec(ConfigCache)
-    cache.get.side_effect = [
+    fetch_func = mock.Mock(side_effect=[
         {
             'namespace': 'a',
             'include': ['b', 'c'],
@@ -173,11 +174,8 @@ def test_fetch_include():
             'namespace': 'c',
             'c.web': {'image': 'c'},
         },
-        {
-            'namespace': 'c',
-            'c.web': {'image': 'c'},
-        },
-    ]
+    ])
+    cache = ConfigCache(fetch_func)
     config = includes.fetch_include(cache, url)
     expected = {
         'a.web': {'image': 'a', 'links': ['b.web', 'c.web', 'a.db']},
@@ -186,3 +184,56 @@ def test_fetch_include():
         'c.web': {'image': 'c'},
     }
     assert config == expected
+
+
+@pytest.mark.acceptance
+def test_include_end_to_end(tmpdir, capsys):
+    tmpdir.join('docker-compose.yml').write("""
+        include:
+            - ./api_a/docker-compose.yml
+            - ./api_b/docker-compose.yml
+        web:
+            image: example/web:latest
+            links: ['api_a.web', 'db', 'api_b.web']
+            volumes_from: ['configs']
+        db:
+            image: example/db:latest
+        configs:
+            image: example/configs:latest
+    """)
+    tmpdir.mkdir('api_a').join('docker-compose.yml').write("""
+        include:
+            - ./api_b/docker-compose.yml
+        namespace: api_a
+        api_a.web:
+            image: services/a:latest
+            links: ['api_a.db', 'api_b.web']
+        api_a.db:
+            image: services/db_a:latest
+    """)
+    tmpdir.mkdir('api_b').join('docker-compose.yml').write("""
+        namespace: api_b
+        api_b.web:
+            image: services/b:latest
+    """)
+
+    expected = {
+        'web': {
+            'image': 'example/web:latest',
+            'links': ['api_a.web', 'db', 'api_b.web'],
+            'volumes_from': ['configs'],
+        },
+        'db': {'image': 'example/db:latest'},
+        'configs': {'image': 'example/configs:latest'},
+        'api_a.web': {
+            'image': 'services/a:latest',
+            'links': ['api_a.db', 'api_b.web'],
+        },
+        'api_a.db': {'image': 'services/db_a:latest'},
+        'api_b.web': {'image': 'services/b:latest'},
+    }
+
+    with tmpdir.as_cwd():
+        includes.main(args=['docker-compose.yml'])
+    out, err = capsys.readouterr()
+    assert yaml.load(out) == expected

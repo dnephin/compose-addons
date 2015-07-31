@@ -99,7 +99,8 @@ def fetch_external_config(url, fetch_config):
 
 
 class ConfigCache(object):
-    """Cache each config by url"""
+    """Cache each config by url. Always return a new copy of the cached dict.
+    """
 
     def __init__(self, fetch_func):
         self.cache = {}
@@ -108,7 +109,7 @@ class ConfigCache(object):
     def get(self, url):
         if url not in self.cache:
             self.cache[url] = self.fetch_func(url)
-        return self.cache[url]
+        return dict(self.cache[url])
 
 
 # TODO:
@@ -181,7 +182,7 @@ def get_args(args=None):
     )
     parser.add_argument('--version', action='version', version=version)
     parser.add_argument(
-        '-f', '--compose-file',
+        'compose_file',
         type=argparse.FileType('r'),
         default=sys.stdin,
         help="Path to a docker-compose configuration with includes.")
