@@ -28,7 +28,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'dcao-include = compose_addons.includes:main'
+            'dcao-include = compose_addons.includes:main',
+            'dcao-merge = compose_addons.merge:main'
         ],
     },
 )

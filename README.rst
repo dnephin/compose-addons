@@ -127,3 +127,21 @@ Use it once to generate a new file:
     dcao-include -o docker-compose.yml compose-with-includes.yml
     docker-compose up -d
     docker-compose ps
+
+
+dcao-merge
+----------
+
+Merge ``docker-compose.yml`` configuration files by overriding values in the
+base configuration with values from other files.
+
+Use Cases
+~~~~~~~~~
+
+- Often in development you'll want to include code using a volume for faster
+  iteration, but for testing on a CI you want to include the source in the
+  container with ``ADD``. You could use an ``overrides-dev.yml`` to add
+  volumes to the configuration.
+- If the composition is running on a shared host each developer needs to use a
+  different host port. This variation can be included in a file maintained by
+  each developer, separate from the source repo.
