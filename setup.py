@@ -20,7 +20,6 @@ setup(
     packages=['compose_addons'],
     install_requires=[
         'requests',
-        'docker-py',
         'six',
         'pyyaml',
     ],
@@ -29,7 +28,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'dcao-include = compose_addons.includes:main'
+            'dcao-include = compose_addons.includes:main',
+            'dcao-namespace = compose_addons.namespace:main',
         ],
     },
 )

@@ -13,10 +13,9 @@ import sys
 import requests
 import requests.exceptions
 from six.moves.urllib.parse import urlparse
-import yaml
-
 
 from compose_addons import version
+from compose_addons.config_utils import read_config, write_config
 
 log = logging.getLogger(__name__)
 
@@ -32,10 +31,6 @@ class FetchExternalConfigError(ConfigError):
 def normalize_url(url):
     url = urlparse(url)
     return url if url.scheme else url._replace(scheme='file')
-
-
-def read_config(content):
-    return yaml.safe_load(content)
 
 
 def get_project_from_file(url):
@@ -117,6 +112,12 @@ class ConfigCache(object):
         return dict(self.cache[url])
 
 
+def apply_namespace(name, namespace, service_names):
+    if name.startswith(namespace) or name not in service_names:
+        return name
+    return '%s.%s' % (namespace, name)
+
+
 def merge_configs(base, configs):
     for config in configs:
         base.update(config)
@@ -135,7 +136,6 @@ def fetch_include(cache, url):
         raise ConfigError("Configuration %s requires a namespace" % url)
 
     configs = fetch_includes(config, cache)
-    # TODO: validate service config (no build, no host volumes, etc)
     return merge_configs(config, configs)
 
 
@@ -181,9 +181,4 @@ def build_fetch_config(args):
 def main(args=None):
     args = get_args(args=args)
     config = include(read_config(args.compose_file), build_fetch_config(args))
-    yaml.dump(
-        config,
-        stream=args.output,
-        indent=4,
-        width=80,
-        default_flow_style=False)
+    write_config(config, args.output)
