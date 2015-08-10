@@ -16,6 +16,7 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Intended Audience :: Developers",
     ],
+    license="Apache License 2.0",
     packages=['compose_addons'],
     install_requires=[
         'requests',
