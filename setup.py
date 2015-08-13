@@ -30,6 +30,7 @@ setup(
         'console_scripts': [
             'dcao-include = compose_addons.includes:main',
             'dcao-namespace = compose_addons.namespace:main',
+            'dcao-merge = compose_addons.merge:main',
         ],
     },
 )
