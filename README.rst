@@ -127,3 +127,39 @@ Use it once to generate a new file:
     dcao-include -o docker-compose.yml compose-with-includes.yml
     docker-compose up -d
     docker-compose ps
+
+
+dcao-namespace
+--------------
+
+Given a standard ``docker-compose.yml`` file, add a namespace key, and prefix
+all instances of service names with that namespace. This command is used to
+prepare a standard ``docker-compose.yml`` file for being used as an include
+by ``dcao-include``.
+
+
+Usage
+~~~~~
+
+First general the namespaced config
+
+.. code:: sh
+
+    dcao-namespace -o myservice.yml docker-compose.yml myservice
+
+Next you'll want to make ``myservice.yml`` available to other services. In this
+example we'll assume we're using an s3 bucket
+
+.. code:: sh
+
+    aws s3 cp myservice.yml s3://some-bucket/compose-registry/myservice.yml
+
+
+Now we can use that configuration as an include in another service. In a
+different services ``compose-with-includes.yml`` (which will be consumed by
+``dcao-include``)
+
+.. code:: sh
+
+    include:
+        - s3://some-bucket/compose-registry/myservice.yml

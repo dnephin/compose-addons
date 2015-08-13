@@ -40,7 +40,7 @@ def test_add_namespace():
             'links': ['star.db:db'],
         },
     }
-    
+
     result = namespace.add_namespace(config, 'star')
     assert result == expected
 
@@ -71,7 +71,7 @@ def test_namespace_net_external_service():
 
 
 def test_namespace_net_internal_service():
-    service = orig = {'net': 'container:db'}
+    service = {'net': 'container:db'}
     namespace.namespace_net(service, 'namespace.', {'db', 'config'})
     assert service == {'net': 'container:namespace.db'}
 

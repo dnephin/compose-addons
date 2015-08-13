@@ -14,7 +14,7 @@ from compose_addons.config_utils import read_config, write_config
 def add_namespace(config, namespace):
     service_names = set(config)
     prefix = namespace + '.'
-    
+
     def add_to_service(name, service_config):
         namespace_links(service_config, prefix, service_names)
         namespace_volumes_from(service_config, prefix, service_names)
