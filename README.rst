@@ -6,6 +6,10 @@ A set of command line tools to supplement the features already available
 in docker-compose. These tools generally focus on development or testing
 environment use-cases.
 
+.. image:: https://img.shields.io/pypi/v/compose-addons.svg
+    :target: https://pypi.python.org/pypi/compose-addons
+    :alt: Latest PyPI version
+
 
 .. contents::
     :backlinks: none
@@ -14,12 +18,11 @@ environment use-cases.
 Install
 -------
 
-Currently the only install option is pip with git url
-
+Currently the only install option is pip
 
 .. code:: sh
 
-    pip install git+https://github.com/dnephin/compose-addons.git
+    pip install compose-addons
 
 
 dcao-include
