@@ -142,13 +142,45 @@ dcao-namespace
 Given a standard ``docker-compose.yml`` file, add a namespace key, and prefix
 all instances of service names with that namespace. This command is used to
 prepare a standard ``docker-compose.yml`` file for being used as an include
-by ``dcao-include``.
+by ``dcao-include``. This could be considered the "export" step required
+before a compose file can be included by another project.
+
+
+Example
+~~~~~~~
+
+Given a ``docker-compose.yml``:
+
+.. code:: yaml
+
+    web:
+        image: example.com/web:latest
+        links: ['db']
+        volumes_from: ['configs']
+    db:
+        image: example.com/db:latest
+    configs:
+        image: example.com/configs:latest
+
+running ``dcao-namespace docker-compose.yml myservice`` would produce
+
+.. code:: yaml
+
+    namespace: myservice
+    myservice.web:
+        image: example.com/web:latest
+        links: ['myservice.db:db']
+        volumes_from: ['myservice.configs']
+    myservice.db:
+        image: example.com/db:latest
+    myservice.configs:
+        image: example.com/configs:latest
 
 
 Usage
 ~~~~~
 
-First general the namespaced config
+First generate the namespaced config
 
 .. code:: sh
 
@@ -176,15 +208,64 @@ dcao-merge
 ----------
 
 Merge ``docker-compose.yml`` configuration files by overriding values in the
-base configuration with values from other files.
+base configuration with values from other files. It is used to transform a
+configuration without having to duplicate any fields that should remain
+consistent.
 
 Use Cases
 ~~~~~~~~~
 
 - Often in development you'll want to include code using a volume for faster
   iteration, but for testing on a CI you want to include the source in the
-  container with ``ADD``. You could use an ``overrides-dev.yml`` to add
-  volumes to the configuration.
+  container with ``ADD`` (or ``COPY``). You could use an ``overrides-dev.yml`` to add
+  volumes to the configuration, and skip that step during CI.
 - If the composition is running on a shared host each developer needs to use a
   different host port. This variation can be included in a file maintained by
-  each developer, separate from the source repo.
+  each developer outside of version control.
+- If a ``docker-compose.yml`` contains ``build`` directives for local
+  development, but needs ``image`` directives in other environments (testing,
+  stage, prod, etc), merge can be used to rewrite ``build`` to ``image`` with
+  the correct image tag.
+
+
+Usage
+~~~~~
+
+To rewrite a configuration to use image instead of build, and remove any host
+specific configuration:
+
+.. code:: sh
+
+    dcao-merge -o export.yml docker-compose.yml compose-overrides.yml
+
+Where ``docker-compose.yml`` is:
+
+.. code:: yaml
+
+    web:
+        build: .
+        links: ['db']
+        volumes: ['./logs:/app/logs']
+    db:
+        build: database/
+
+and ``compose-overrides.yml``:
+
+.. code:: yaml
+
+    web:
+        image: example.com/web:latest
+        volumes: []
+    db:
+        image: example.com/db:latest
+
+would produce an ``export.yml``
+
+.. code:: yaml
+
+    web:
+        image: example.com/web:latest
+        links: ['db']
+        volumes: []
+    db:
+        image: example.com/db:latest
