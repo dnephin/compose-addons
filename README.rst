@@ -10,6 +10,10 @@ environment use-cases.
     :target: https://pypi.python.org/pypi/compose-addons
     :alt: Latest PyPI version
 
+.. image:: https://travis-ci.org/dnephin/compose-addons.svg?branch=master
+    :target: https://travis-ci.org/dnephin/compose-addons
+    :alt: Travis CI
+
 
 .. contents::
     :backlinks: none
